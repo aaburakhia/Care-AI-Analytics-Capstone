@@ -1,41 +1,60 @@
+// frontend/src/LoginPage.tsx
 import React, { useState } from 'react';
 import { Button, TextField, Box, Typography, Alert } from '@mui/material';
 import axios from 'axios';
-import { useAuth } from './AuthContext'; 
+import { useAuth } from './AuthContext';
 
-// IMPORTANT: Replace this with the actual LIVE URL of your BACKEND API on Vercel
-const API_URL = "https://care-ai-analytics-capstone.vercel.app"; 
+const API_URL = "https://care-ai-analytics-capstone.vercel.app";
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Get the login function from the context we created
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
     
     try {
-      // *** CORRECTION: Send data as a JSON object, NOT FormData ***
+      console.log('Attempting login for:', email); // DEBUG
+      
       const response = await axios.post(`${API_URL}/auth/login`, {
         email: email,
         password: password,
       });
       
-      // 1. Store the token and user info using the context function
-      login(response.data.access_token, response.data.email); // <-- THIS IS THE NEW CRITICAL LINE
+      console.log('Login response:', response.data); // DEBUG
       
-      // 2. Redirect to the protected profile page
-      window.location.href = '/profile';
-    } catch (err: any) {
-      // Handle errors from the backend
-      if (err.response && err.response.data && err.response.data.detail) {
-          setError(err.response.data.detail); // Show the specific error from FastAPI
+      if (response.data.access_token) {
+        login(response.data.access_token, email);
+        window.location.href = '/profile';
       } else {
-          setError('Login failed. Check the backend API status.');
+        setError('No access token received from server.');
       }
+    } catch (err: any) {
+      console.error('Login error:', err); // DEBUG
+      
+      if (err.response?.status === 401) {
+        setError('Invalid email or password.');
+      } else if (err.response?.data?.detail) {
+        // Check if it's an email verification issue
+        const detail = err.response.data.detail;
+        if (detail.includes('Email not confirmed') || detail.includes('verify')) {
+          setError('Please verify your email before logging in. Check your inbox for the verification link.');
+        } else {
+          setError(detail);
+        }
+      } else if (err.message === 'Network Error') {
+        setError('Cannot connect to server. Please check your internet connection.');
+      } else {
+        setError('Login failed. Please try again later.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,7 +63,7 @@ const LoginPage: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Login
       </Typography>
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <form onSubmit={handleLogin}>
         <TextField
           label="Email"
@@ -54,6 +73,7 @@ const LoginPage: React.FC = () => {
           onChange={(e) => setEmail(e.target.value)}
           margin="normal"
           required
+          disabled={isLoading}
         />
         <TextField
           label="Password"
@@ -63,13 +83,23 @@ const LoginPage: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           margin="normal"
           required
+          disabled={isLoading}
         />
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          Login
+        <Button 
+          type="submit" 
+          variant="contained" 
+          fullWidth 
+          sx={{ mt: 2 }}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
-      {/* Add a link to the Sign Up page */}
-      <Button onClick={() => window.location.href = '/signup'} sx={{ mt: 1 }}>
+      <Button 
+        onClick={() => window.location.href = '/signup'} 
+        sx={{ mt: 1 }}
+        disabled={isLoading}
+      >
         Don't have an account? Sign Up
       </Button>
     </Box>
