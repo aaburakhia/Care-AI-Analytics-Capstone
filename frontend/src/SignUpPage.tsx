@@ -1,51 +1,44 @@
+// frontend/src/SignUpPage.tsx
 import React, { useState } from 'react';
 import { Button, TextField, Box, Typography, Alert } from '@mui/material';
 import axios from 'axios';
-import { useAuth } from './AuthContext'; 
 
-// IMPORTANT: Replace this with the actual LIVE URL of your BACKEND API on Vercel
 const API_URL = "https://care-ai-analytics-capstone.vercel.app"; 
-const LoginPage: React.FC = () => {
+const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // Get the login function from the context we created
-  const { login } = useAuth(); 
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setMessage(null);
     
     try {
-      // *** CORRECTION: Send data as a JSON object, NOT FormData ***
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await axios.post(`${API_URL}/auth/register`, {
         email: email,
         password: password,
       });
       
-      // 1. Store the token and user info using the context function
-      login(response.data.access_token, response.data.email); // <-- THIS IS THE NEW CRITICAL LINE
-      
-      // 2. Redirect to the protected profile page
-      window.location.href = '/profile';
+      setMessage(response.data.message); // Shows success message from backend
+      setEmail('');
+      setPassword('');
     } catch (err: any) {
-      // Handle errors from the backend
       if (err.response && err.response.data && err.response.data.detail) {
-          setError(err.response.data.detail); // Show the specific error from FastAPI
+          setError(err.response.data.detail);
       } else {
-          setError('Login failed. Check the backend API status.');
+          setError('Registration failed. Check console for details.');
       }
     }
   };
 
   return (
     <Box sx={{ padding: 4, maxWidth: 400, margin: 'auto' }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Login
-      </Typography>
+      <Typography variant="h4" component="h1" gutterBottom>Create Account</Typography>
       {error && <Alert severity="error">{error}</Alert>}
-      <form onSubmit={handleLogin}>
+      {message && <Alert severity="success">{message}</Alert>}
+      <form onSubmit={handleSignUp}>
         <TextField
           label="Email"
           type="email"
@@ -56,7 +49,7 @@ const LoginPage: React.FC = () => {
           required
         />
         <TextField
-          label="Password"
+          label="Password (Min 6 characters)"
           type="password"
           fullWidth
           value={password}
@@ -65,15 +58,14 @@ const LoginPage: React.FC = () => {
           required
         />
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          Login
+          Sign Up
         </Button>
       </form>
-      {/* Add a link to the Sign Up page */}
-      <Button onClick={() => window.location.href = '/signup'} sx={{ mt: 1 }}>
-        Don't have an account? Sign Up
+      <Button onClick={() => window.location.href = '/login'} sx={{ mt: 1 }}>
+        Already have an account? Login
       </Button>
     </Box>
   );
 };
 
-export default LoginPage;
+export default SignUpPage;
