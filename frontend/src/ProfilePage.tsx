@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Typography, Box, Alert, CircularProgress } from '@mui/material'; // Assuming you use Material-UI for a clean look
 import axios from 'axios';
 
-// IMPORTANT: Replace this with the actual URL of your deployed FastAPI backend on Vercel
-const API_URL = "https://care-ai-analytics-capstone.vercel.app/"; 
+
+const API_URL = "https://care-ai-analytics-capstone.vercel.app"; 
 
 // --- Component Definition ---
 const ProfilePage: React.FC = () => {
@@ -18,7 +18,7 @@ const ProfilePage: React.FC = () => {
     // 1. Clear the access_token from local storage
     localStorage.removeItem('access_token'); 
     
-    // 2. Redirect the user back to the Login screen (assuming your router is set up for '/login')
+    // 2. Redirect the user back to the Login screen
     window.location.href = '/login'; 
   };
 
