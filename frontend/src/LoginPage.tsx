@@ -19,39 +19,45 @@ const LoginPage: React.FC = () => {
     setError(null);
     setIsLoading(true);
     
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Email:', email);
+    console.log('API URL:', API_URL);
+    
     try {
-      console.log('Attempting login for:', email); // DEBUG
+      console.log('Sending request to backend...');
       
       const response = await axios.post(`${API_URL}/auth/login`, {
         email: email,
         password: password,
       });
       
-      console.log('Login response:', response.data); // DEBUG
+      console.log('Backend response:', response.data);
+      console.log('Access token received:', response.data.access_token ? 'YES' : 'NO');
       
       if (response.data.access_token) {
-        login(response.data.access_token, email);
+        console.log('Calling login() from context...');
+        login(response.data.access_token, response.data.email || email);
+        
+        console.log('Redirecting to /profile...');
         window.location.href = '/profile';
       } else {
+        console.error('No access token in response!');
         setError('No access token received from server.');
       }
     } catch (err: any) {
-      console.error('Login error:', err); // DEBUG
+      console.error('=== LOGIN ERROR ===');
+      console.error('Full error:', err);
+      console.error('Error response:', err.response);
+      console.error('Error data:', err.response?.data);
       
       if (err.response?.status === 401) {
         setError('Invalid email or password.');
       } else if (err.response?.data?.detail) {
-        // Check if it's an email verification issue
-        const detail = err.response.data.detail;
-        if (detail.includes('Email not confirmed') || detail.includes('verify')) {
-          setError('Please verify your email before logging in. Check your inbox for the verification link.');
-        } else {
-          setError(detail);
-        }
+        setError(err.response.data.detail);
       } else if (err.message === 'Network Error') {
         setError('Cannot connect to server. Please check your internet connection.');
       } else {
-        setError('Login failed. Please try again later.');
+        setError(`Login failed: ${err.message}`);
       }
     } finally {
       setIsLoading(false);
