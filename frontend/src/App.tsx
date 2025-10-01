@@ -5,7 +5,6 @@ import { AuthProvider, useAuth } from './AuthContext';
 import LoginPage from './LoginPage';
 import ProfilePage from './ProfilePage';
 import SignUpPage from './SignUpPage';
-import ConfirmEmailPage from './ConfirmEmailPage'; // NEW IMPORT
 
 const ProtectedRoute: React.FC = () => {
     const { isAuthenticated, isLoading } = useAuth();
@@ -24,7 +23,6 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/confirm-email" element={<ConfirmEmailPage />} /> {/* NEW ROUTE */}
           <Route path="/profile" element={<ProtectedRoute />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>

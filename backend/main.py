@@ -93,21 +93,14 @@ async def login_user(credentials: UserCredentials):
         if res.session is None:
             raise HTTPException(status_code=401, detail="Invalid credentials.")
         
-        # Check if email is confirmed
-        if res.user and not res.user.email_confirmed_at:
-            raise HTTPException(
-                status_code=403, 
-                detail="Email not confirmed. Please check your inbox and verify your email."
-            )
-        
         return {
             "message": "Login successful",
             "access_token": res.session.access_token,
             "user_id": res.user.id,
-            "email": res.user.email  # Add email to response
+            "email": res.user.email
         }
     except HTTPException:
-        raise  # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 

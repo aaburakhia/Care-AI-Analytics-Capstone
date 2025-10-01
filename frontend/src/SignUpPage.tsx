@@ -4,6 +4,7 @@ import { Button, TextField, Box, Typography, Alert } from '@mui/material';
 import axios from 'axios';
 
 const API_URL = "https://care-ai-analytics-capstone.vercel.app"; 
+
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,14 +22,20 @@ const SignUpPage: React.FC = () => {
         password: password,
       });
       
-      setMessage(response.data.message); // Shows success message from backend
+      setMessage('Account created successfully! You can now log in.');
       setEmail('');
       setPassword('');
+      
+      // Auto-redirect to login after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+      
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.detail) {
-          setError(err.response.data.detail);
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
       } else {
-          setError('Registration failed. Check console for details.');
+        setError('Registration failed. Please try again.');
       }
     }
   };
@@ -56,6 +63,7 @@ const SignUpPage: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           margin="normal"
           required
+          inputProps={{ minLength: 6 }}
         />
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
           Sign Up
